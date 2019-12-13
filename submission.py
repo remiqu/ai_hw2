@@ -24,6 +24,7 @@ class MinimaxAgent(Player):
     hint: use the 'agent_action' property to determine if it's the agents turn or the opponents' turn. You can pass
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
+
     class Turn(Enum):
         AGENT_TURN = 'AGENT_TURN'
         OPPONENTS_TURN = 'OPPONENTS_TURN'
@@ -41,9 +42,69 @@ class MinimaxAgent(Player):
         def turn(self):
             return MinimaxAgent.Turn.AGENT_TURN if self.agent_action is None else MinimaxAgent.Turn.OPPONENTS_TURN
 
+    def utility(self, state: TurnBasedGameState) -> list:
+        return 1 if state.game_state.current_winner == self.player_index else -1
+
+    def max_value(self, state: TurnBasedGameState) -> list:
+        if state.game_state.is_terminal_state:
+            return self.utility(state)
+        v = -np.inf
+        for action in state.game_state.get_possible_actions(player_index=self.player_index):
+            next_state = self.TurnBasedGameState(state.game_state, action)
+            v = max(v, self.min_value(next_state))
+        return v
+
+    def min_value(self, state: TurnBasedGameState) -> list:
+        if state.game_state.is_terminal_state:
+            return self.utility(state)
+        v = np.inf
+        for opponents_actions in state.get_possible_actions_dicts_given_action(state.agent_action,player_index=self.player_index):
+            opponents_actions[self.player_index] = state.agent_action
+            next_state = get_next_state(state.game_state, opponents_actions)
+            tb_next_state = self.TurnBasedGameState(next_state, None)
+            v = min(v, self.max_value(tb_next_state))
+        return v
+
     def get_action(self, state: GameState) -> GameAction:
-        # Insert your code here...
-        pass
+        best_value = -np.inf
+        best_actions = state.get_possible_actions(player_index=self.player_index)
+        for action in state.game_state.get_possible_actions(player_index=self.player_index):
+            next_state = self.TurnBasedGameState(state.game_state, action)
+            if best_value > self.min_value(next_state):
+                best_value = self.min_value(next_state)
+                best_actions = [action]
+            elif best_value == self.min_value(next_state):
+                best_actions.append(action)
+        return np.random.choice(best_actions)
+
+
+    # def utility(self, state: TurnBasedGameState) -> list:
+    #     return [s.length for s in state.snakes if s.alive and -1 if not s.alive]
+    #
+    #
+    #
+    # def max_value(self, state: TurnBasedGameState) -> list:
+    #     if state.game_state.is_terminal_state:
+    #         return self.utility(state)
+    #     v = -np.inf
+    #     for action in state.game_state.get_possible_actions(player_index=self.player_index):
+    #         next_state = self.TurnBasedGameState(state.game_state, action)
+    #         v = max_utility(v, self.min_value(next_state))
+    #     return v
+    #
+    # def min_value(self, state: TurnBasedGameState) -> list:
+    #     if state.game_state.is_terminal_state:
+    #         return self.utility(state)
+    #     v = np.inf
+    #     for opponents_actions in state.get_possible_actions_dicts_given_action(state.agent_action, player_index=self.player_index):
+    #         opponents_actions[self.player_index] = state.agent_action
+    #         next_state = get_next_state(state.game_state, opponents_actions)
+    #         tb_next_state = self.TurnBasedGameState(next_state, None)
+    #         v = min_utility(v, self.max_value())
+    #     return v
+
+
+
 
 
 class AlphaBetaAgent(MinimaxAgent):
