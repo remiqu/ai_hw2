@@ -12,8 +12,16 @@ def heuristic(state: GameState, player_index: int) -> float:
     state.snakes array as well.
     :return:
     """
-    # Insert your code here...
-    pass
+    if not state.snakes[player_index].alive:
+        return 0
+
+    head = state.snakes[player_index].head
+    sum = state.snakes[player_index].length
+
+    for fruit in state.fruits_locations:
+        sum += 1 / (abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]))
+
+    return sum
 
 
 class MinimaxAgent(Player):
@@ -24,7 +32,8 @@ class MinimaxAgent(Player):
     hint: use the 'agent_action' property to determine if it's the agents turn or the opponents' turn. You can pass
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
-    def __init__(self, depth=np.inf):
+
+    def __init__(self, depth=7):
         self.depth = depth
 
     class Turn(Enum):
@@ -36,6 +45,7 @@ class MinimaxAgent(Player):
         This class is a wrapper class for a GameState. It holds the action of our agent as well, so we can model turns
         in the game (set agent_action=None to indicate that our agent has yet to pick an action).
         """
+
         def __init__(self, game_state: GameState, agent_action: GameAction):
             self.game_state = game_state
             self.agent_action = agent_action
@@ -45,48 +55,83 @@ class MinimaxAgent(Player):
             return MinimaxAgent.Turn.AGENT_TURN if self.agent_action is None else MinimaxAgent.Turn.OPPONENTS_TURN
 
     def utility(self, state: TurnBasedGameState) -> float:
-        return 1 if state.game_state.current_winner == self.player_index else -1
+        return np.inf if state.game_state.current_winner == self.player_index else -np.inf
 
-    def max_value(self, state: TurnBasedGameState, depth) -> float:
+    def RB_minimax(self, state: TurnBasedGameState, depth):
         if state.game_state.is_terminal_state:
             return self.utility(state)
         if depth == 0:
             return heuristic(state.game_state, self.player_index)
-        v = -np.inf
-        for action in state.game_state.get_possible_actions(player_index=self.player_index):
-            next_state = self.TurnBasedGameState(state.game_state, action)
-            v = max(v, self.min_value(next_state, depth-1))
-        return v
-
-    def min_value(self, state: TurnBasedGameState, depth) -> float:
-        if state.game_state.is_terminal_state:
-            return self.utility(state)
-        if depth == 0:
-            return heuristic(state.game_state, self.player_index)
-        v = np.inf
-
-        # todo: no need to pass to this function the id of the Player index that we are trying right now?
-        for opponents_actions in state.game_state.get_possible_actions_dicts_given_action(state.agent_action,
-                                                                                          player_index=self.player_index):
-            # opponents_actions[self.player_index] = state.agent_action
-            next_state = get_next_state(state.game_state, opponents_actions)
-            tb_next_state = self.TurnBasedGameState(next_state, None)
-            v = min(v, self.max_value(tb_next_state, depth-1))
-        return v
+        if state.turn == self.Turn.AGENT_TURN:
+            cur_max = -np.inf
+            for action in state.game_state.get_possible_actions(player_index=self.player_index):
+                next_state = self.TurnBasedGameState(state.game_state, action)
+                v = self.RB_minimax(next_state, depth - 1)
+                cur_max = max(v, cur_max)
+            return cur_max
+        else:
+            cur_min = np.inf
+            for opponents_actions in state.game_state.get_possible_actions_dicts_given_action(state.agent_action,
+                                                                                              player_index=self.player_index):
+                opponents_actions[self.player_index] = state.agent_action
+                next_state = get_next_state(state.game_state, opponents_actions)
+                tb_next_state = self.TurnBasedGameState(next_state, None)
+                v = self.RB_minimax(tb_next_state, depth - 1)
+                cur_min = min(v, cur_min)
+            return cur_min
 
     def get_action(self, state: GameState) -> GameAction:
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            min_value = self.min_value(next_state, self.depth-1)
-            if best_value > min_value:
-                best_value = min_value
+            max_value = self.RB_minimax(next_state, self.depth - 1)
+            if max_value > best_value:
+                best_value = max_value
                 best_actions = [action]
-            elif best_value == min_value:
+            elif best_value == max_value:
                 best_actions.append(action)
         return np.random.choice(best_actions)
 
+    # def max_value(self, state: TurnBasedGameState, depth) -> float:
+    #     if state.game_state.is_terminal_state:
+    #         return self.utility(state)
+    #     if depth == 0:
+    #         return heuristic(state.game_state, self.player_index)
+    #     v = -np.inf
+    #     for action in state.game_state.get_possible_actions(player_index=self.player_index):
+    #         next_state = self.TurnBasedGameState(state.game_state, action)
+    #         v = max(v, self.min_value(next_state, depth-1))
+    #     return v
+    #
+    # def min_value(self, state: TurnBasedGameState, depth) -> float:
+    #     if state.game_state.is_terminal_state:
+    #         return self.utility(state)
+    #     if depth == 0:
+    #         return heuristic(state.game_state, self.player_index)
+    #     v = np.inf
+    #
+    #     # todo: no need to pass to this function the id of the Player index that we are trying right now?
+    #     for opponents_actions in state.game_state.get_possible_actions_dicts_given_action(state.agent_action,
+    #                                                                                       player_index=self.player_index):
+    #         opponents_actions[self.player_index] = state.agent_action
+    #         next_state = get_next_state(state.game_state, opponents_actions)
+    #         tb_next_state = self.TurnBasedGameState(next_state, None)
+    #         v = min(v, self.max_value(tb_next_state, depth-1))
+    #     return v
+    #
+    # def get_action(self, state: GameState) -> GameAction:
+    #     best_value = np.inf
+    #     best_actions = state.get_possible_actions(player_index=self.player_index)
+    #     for action in state.get_possible_actions(player_index=self.player_index):
+    #         next_state = self.TurnBasedGameState(state, action)
+    #         min_value = self.min_value(next_state, self.depth-1)
+    #         if min_value < best_value:
+    #             best_value = min_value
+    #             best_actions = [action]
+    #         elif best_value == min_value:
+    #             best_actions.append(action)
+    #     return np.random.choice(best_actions)
 
     # def utility(self, state: TurnBasedGameState) -> list:
     #     return [s.length for s in state.snakes if s.alive and -1 if not s.alive]
@@ -114,13 +159,50 @@ class MinimaxAgent(Player):
     #     return v
 
 
-
-
-
 class AlphaBetaAgent(MinimaxAgent):
+
+    def RB_alphaBeta(self, state: MinimaxAgent.TurnBasedGameState, depth, alpha, beta):
+        if state.game_state.is_terminal_state:
+            return self.utility(state)
+        if depth == 0:
+            return heuristic(state.game_state, self.player_index)
+        if state.turn == self.Turn.AGENT_TURN:
+            cur_max = -np.inf
+            for action in state.game_state.get_possible_actions(player_index=self.player_index):
+                next_state = self.TurnBasedGameState(state.game_state, action)
+                v = self.RB_alphaBeta(next_state, depth - 1, alpha, beta)
+                cur_max = max(v, cur_max)
+                alpha = max(cur_max, alpha)
+                if cur_max >= beta:
+                    return np.inf
+            return cur_max
+        else:
+            cur_min = np.inf
+            for opponents_actions in state.game_state.get_possible_actions_dicts_given_action(state.agent_action,
+                                                                                              player_index=self.player_index):
+                opponents_actions[self.player_index] = state.agent_action
+                next_state = get_next_state(state.game_state, opponents_actions)
+                tb_next_state = self.TurnBasedGameState(next_state, None)
+                v = self.RB_alphaBeta(tb_next_state, depth - 1, alpha, beta)
+                cur_min = min(v, cur_min)
+                beta = min(cur_min, beta)
+                if cur_min <= alpha:
+                    return -np.inf
+            return cur_min
+
     def get_action(self, state: GameState) -> GameAction:
-        # Insert your code here...
-        pass
+        best_value = -np.inf
+        best_actions = state.get_possible_actions(player_index=self.player_index)
+        for action in state.get_possible_actions(player_index=self.player_index):
+            next_state = self.TurnBasedGameState(state, action)
+            max_value = self.RB_alphaBeta(next_state, self.depth - 1, -np.inf, np.inf)
+            if max_value > best_value:
+                best_value = max_value
+                best_actions = [action]
+            elif best_value == max_value:
+                best_actions.append(action)
+        return np.random.choice(best_actions)
+
 
 
 def SAHC_sideways():
@@ -164,4 +246,3 @@ class TournamentAgent(Player):
 if __name__ == '__main__':
     SAHC_sideways()
     local_search()
-
