@@ -237,7 +237,7 @@ class GameState:
         :return: a list of dictionaries. each dictionary has the form {player_index ==> player_action}, i.e maps between
         living players and their moves. the list includes a dict for each possible move of the opponents.
         """
-        assert  self.snakes[player_index].alive
+        assert self.snakes[player_index].alive
 
         opponents_alive = self.get_opponents_alive(player_index=player_index)
         if len(opponents_alive) == 0:
