@@ -33,7 +33,7 @@ class MinimaxAgent(Player):
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
 
-    def __init__(self, depth=7):
+    def __init__(self, depth=5):
         self.depth = depth
 
     class Turn(Enum):
@@ -218,7 +218,7 @@ def SAHC_sideways():
     3) print the best moves vector you found.
     :return:
     """
-    pass
+
 
 
 def local_search():
@@ -234,6 +234,9 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
+
+
+
     pass
 
 
