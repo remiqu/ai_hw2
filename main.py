@@ -19,10 +19,8 @@ def start_demo_game(n_agents: int, game_duration: int, board_width: int, board_h
 
 
 def start_game_with_players(players, game_duration: int, board_width: int, board_height: int, n_fruits: int,
-                            fast_run: bool = False, graphics_off: bool = False, depth: int = 5, length=None,
-                            time: list = None):
-    if length is None:
-        length = [0]
+                            fast_run: bool = False, graphics_off: bool = False, depth: int = 5):
+
     if len(players) < 1:
         print("The number of agents must be at least 1.")
 
@@ -30,7 +28,7 @@ def start_game_with_players(players, game_duration: int, board_width: int, board
                             grid_size=Grid2DSize(board_width, board_height),
                             n_fruits=n_fruits,
                             game_duration_in_turns=game_duration, depth=depth)
-    env.run_game(human_speed=not fast_run, render=not graphics_off, length=length, delta_time=time)
+    env.run_game(human_speed=not fast_run, render=not graphics_off)
 
 
 def start_part_c(n_agents: int, game_duration: int, board_width: int, board_height: int,
