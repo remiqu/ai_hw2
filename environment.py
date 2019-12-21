@@ -207,11 +207,13 @@ class GameState:
             board_size: Grid2DSize,
             current_winner: WinnerAtTurn,
             fruits_locations: list,
-            snakes: SnakeAgentsList):
+            snakes: SnakeAgentsList,
+            depth: int):
         self.turn_number = turn_number
         self.game_duration_in_turns = game_duration_in_turns
         self.board_size = board_size
         self.current_winner: WinnerAtTurn = current_winner
+        self.depth = depth
 
         self.fruits_locations = copy.deepcopy(fruits_locations)
         self.snakes: SnakeAgentsList = copy.deepcopy(snakes)
@@ -377,7 +379,7 @@ class Player(ABC):
     n_players: int = 0
 
     @abstractmethod
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         pass
 
     def __init__(self):
@@ -409,13 +411,15 @@ class SnakesBackendSync:
             safe_start_block_size=Grid2DSize(7, 7),
             n_fruits=5,
             game_duration_in_turns=1000,
-            random_seed=None
+            random_seed=None,
+            depth=5
     ):
         self._agents_controllers = agents
         self.n_agents = len(agents)
         self.board_size = grid_size
         self.safe_start_block_size = safe_start_block_size
         self.n_trophies = n_fruits
+        self.depth = depth
         self.game_duration_in_turns = game_duration_in_turns
         self._random_seed = random_seed
 
@@ -449,7 +453,8 @@ class SnakesBackendSync:
                                     board_size=self.board_size,
                                     current_winner=None,
                                     fruits_locations=[],
-                                    snakes=snakes)
+                                    snakes=snakes,
+                                    depth=self.depth)
 
         self._fill_fruits(self.game_state)
 
@@ -531,7 +536,7 @@ class SnakesBackendSync:
             if game_state.current_winner is None or game_state.current_winner.length <= longest_snake_length:
                 game_state.current_winner = longest_this_turn
 
-    def run_game(self, human_speed=False, render=True):
+    def run_game(self, human_speed=False, render=True, length=0, delta_time=0):
         if render:
             self.render()
         while self.game_state.turn_number < self.game_duration_in_turns:
@@ -540,7 +545,7 @@ class SnakesBackendSync:
             if human_speed:
                 time.sleep(0.1)
             agents_actions = {
-                agent_index: agent_controller.get_action(self.game_state)
+                agent_index: agent_controller.get_action(self.game_state, delta_time)
                 for agent_index, agent_controller in enumerate(self._agents_controllers)
                 if self.game_state.snakes[agent_index].alive
             }
@@ -552,8 +557,9 @@ class SnakesBackendSync:
             logging.info(f"Current Winner: {self.game_state.current_winner}")
 
             self.played_this_turn = []
-
+        length[0] += self.game_state.snakes[0].length
         print(f"Winner: {self.game_state.current_winner}")
+        # return self.game_state.current_winner.length
 
     def get_living_agents(self):
         """

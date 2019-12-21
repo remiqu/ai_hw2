@@ -1,4 +1,4 @@
-from environment import Player, GameState, GameAction, get_next_state
+from environment import Player, GameState, GameAction, get_next_state, time
 from utils import get_fitness
 import numpy as np
 from enum import Enum
@@ -80,17 +80,20 @@ class MinimaxAgent(Player):
                 cur_min = min(v, cur_min)
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, self.depth - 1)
+            max_value = self.RB_minimax(next_state, state.depth - 1)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
     # def max_value(self, state: TurnBasedGameState, depth) -> float:
@@ -190,7 +193,8 @@ class AlphaBetaAgent(MinimaxAgent):
                     return -np.inf
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -201,6 +205,8 @@ class AlphaBetaAgent(MinimaxAgent):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
 
