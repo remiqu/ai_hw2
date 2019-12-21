@@ -1,4 +1,4 @@
-from environment import Player, GameState, GameAction, get_next_state, time
+from environment import Player, GameState, GameAction, get_next_state
 from utils import get_fitness
 import numpy as np
 from enum import Enum
@@ -80,8 +80,7 @@ class MinimaxAgent(Player):
                 cur_min = min(v, cur_min)
             return cur_min
 
-    def get_action(self, state: GameState, delta_time=None) -> GameAction:
-        start_time = time.time()
+    def get_action(self, state: GameState) -> GameAction:
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -92,8 +91,6 @@ class MinimaxAgent(Player):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
-        end_time = time.time()
-        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
     # def max_value(self, state: TurnBasedGameState, depth) -> float:
@@ -193,8 +190,7 @@ class AlphaBetaAgent(MinimaxAgent):
                     return -np.inf
             return cur_min
 
-    def get_action(self, state: GameState, delta_time=None) -> GameAction:
-        start_time = time.time()
+    def get_action(self, state: GameState) -> GameAction:
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -205,9 +201,11 @@ class AlphaBetaAgent(MinimaxAgent):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
-        end_time = time.time()
-        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
+
+
+
+
 
 
 
@@ -224,7 +222,21 @@ def SAHC_sideways():
     3) print the best moves vector you found.
     :return:
     """
+    steps = []
+    for i in range(50):
+        steps.append(np.random.choice(GameAction))
 
+    for i in range(50):
+        best_action = GameAction.LEFT
+        best_score = 0
+        for action in GameAction:
+            steps[i] = action
+            score = get_fitness(tuple(steps))
+            if score >= best_score:
+                best_score = score
+                best_action = action
+        steps[i] = best_action
+    print(steps)
 
 
 def local_search():
@@ -240,7 +252,27 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
+    steps = []
+    for i in range(50):
+        steps.append(np.random.choice(GameAction))
 
+    for i in range(50):
+
+        steps[i] = GameAction.RIGHT
+        score_right = get_fitness(tuple(steps))
+        steps[i] = GameAction.LEFT
+        score_left = get_fitness(tuple(steps))
+        steps[i] = GameAction.STRAIGHT
+        score_straight = get_fitness(tuple(steps))
+
+        score = score_left + score_right + score_straight
+        prob_right = score_right/score
+        prob_left = score_left/score
+        prob_straight = score_straight/score
+
+        action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 3, p=[prob_right, prob_left, prob_straight])
+        steps[i] = action
+    print(steps)
 
 
     pass
@@ -253,5 +285,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    SAHC_sideways()
+    #SAHC_sideways()
     local_search()
