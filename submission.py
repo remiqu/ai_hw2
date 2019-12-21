@@ -270,8 +270,8 @@ def local_search():
         prob_left = score_left/score
         prob_straight = score_straight/score
 
-        action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 3, p=[prob_right, prob_left, prob_straight])
-        steps[i] = action
+        action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 1, p=[prob_right, prob_left, prob_straight])
+        steps[i] = action[0]
     print(steps)
 
 
