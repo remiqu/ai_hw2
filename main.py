@@ -72,53 +72,53 @@ def start_part_e(n_agents: int, game_duration: int, board_width: int, board_heig
 def start_part_g(n_agents: int, game_duration: int, board_width: int, board_height: int,
                  n_fruits: int, fast_run: bool, graphics_off: bool):
 
-    length_1 = [0]
-    time_1 = [0]
-    for i in range(10):
-        players = [GreedyAgent() for _ in range(n_agents)]
-        start_game_with_players(players,
-                                game_duration,
-                                board_width,
-                                board_height,
-                                n_fruits,
-                                fast_run=fast_run,
-                                graphics_off=graphics_off,
-                                length=length_1,
-                                time=time_1)
-
-    print(length_1[0]/10, time_1[0]/10)
-    length_2 = [0]
-    time_2 = [0]
-    for i in range(10):
-        players = [BetterGreedyAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
-        start_game_with_players(players,
-                                game_duration,
-                                board_width,
-                                board_height,
-                                n_fruits,
-                                fast_run=fast_run,
-                                graphics_off=graphics_off,
-                                length=length_2,
-                                time=time_2)
-    print(length_2[0] / 10, time_2[0] / 10)
-    length_3 = [[0], [0], [0]]
-    time_3 = [[0], [0], [0]]
-    for depth in [2, 4, 6]:
-        for i in range(10):
-            print(depth)
-            players = [MinimaxAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
-            start_game_with_players(players,
-                                    game_duration,
-                                    board_width,
-                                    board_height,
-                                    n_fruits,
-                                    fast_run=fast_run,
-                                    graphics_off=graphics_off,
-                                    depth=depth,
-                                    length=length_3[int(depth / 2 - 1)],
-                                    time=time_3[int(depth / 2 - 1)])
-
-    print(length_3[1][0] / 10, time_3[1][0] / 10)
+    # length_1 = [0]
+    # time_1 = [0]
+    # for i in range(10):
+    #     players = [GreedyAgent() for _ in range(n_agents)]
+    #     start_game_with_players(players,
+    #                             game_duration,
+    #                             board_width,
+    #                             board_height,
+    #                             n_fruits,
+    #                             fast_run=fast_run,
+    #                             graphics_off=graphics_off,
+    #                             length=length_1,
+    #                             time=time_1)
+    #
+    # print(length_1[0]/10, time_1[0]/10)
+    # length_2 = [0]
+    # time_2 = [0]
+    # for i in range(10):
+    #     players = [BetterGreedyAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
+    #     start_game_with_players(players,
+    #                             game_duration,
+    #                             board_width,
+    #                             board_height,
+    #                             n_fruits,
+    #                             fast_run=fast_run,
+    #                             graphics_off=graphics_off,
+    #                             length=length_2,
+    #                             time=time_2)
+    # print(length_2[0] / 10, time_2[0] / 10)
+    # length_3 = [[0], [0], [0]]
+    # time_3 = [[0], [0], [0]]
+    # for depth in [2, 4, 6]:
+    #     for i in range(10):
+    #         print(depth)
+    #         players = [MinimaxAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
+    #         start_game_with_players(players,
+    #                                 game_duration,
+    #                                 board_width,
+    #                                 board_height,
+    #                                 n_fruits,
+    #                                 fast_run=fast_run,
+    #                                 graphics_off=graphics_off,
+    #                                 depth=depth,
+    #                                 length=length_3[int(depth / 2 - 1)],
+    #                                 time=time_3[int(depth / 2 - 1)])
+    #
+    # print(length_3[1][0] / 10, time_3[1][0] / 10)
     length_4 = [[0], [0], [0]]
     time_4 = [[0], [0], [0]]
     for depth in [2, 4, 6]:
@@ -137,10 +137,10 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
 
     with open('experiment.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(['GreedyAgent', length_1[0] / 10, time_1[0] / 10])
-        writer.writerow(['betterAgent', length_2[0] / 10, time_2[0] / 10])
-        for i in range(3):
-            writer.writerow(['MinMaxAgent', 2 * i, length_3[i][0] / 10, time_3[i][0] / 10])
+        # writer.writerow(['GreedyAgent', length_1[0] / 10, time_1[0] / 10])
+        # writer.writerow(['betterAgent', length_2[0] / 10, time_2[0] / 10])
+        # for i in range(3):
+        #     writer.writerow(['MinMaxAgent', 2 * i, length_3[i][0] / 10, time_3[i][0] / 10])
         for i in range(3):
             writer.writerow(['AlphaBetaAgent', 2 * i, length_4[i][0] / 10, time_4[i][0] / 10])
 

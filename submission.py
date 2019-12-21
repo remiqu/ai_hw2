@@ -199,7 +199,7 @@ class AlphaBetaAgent(MinimaxAgent):
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_alphaBeta(next_state, self.depth - 1, -np.inf, np.inf)
+            max_value = self.RB_alphaBeta(next_state, state.depth - 1, -np.inf, np.inf)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
