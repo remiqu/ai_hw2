@@ -5,10 +5,10 @@ from environment import Player, GameAction, GameState, get_next_state, time
 
 class KeyboardPlayer(Player):
     KEY_PRESSED = GameAction.STRAIGHT
-    
+
     def __init__(self, use_keyboard_listener=False):
         """
-        
+
         :param use_keyboard_listener: If you're using Mac operation system, you MUST use 'False' for this to work!
         """
         super().__init__()
@@ -17,20 +17,20 @@ class KeyboardPlayer(Player):
             keyboard.add_hotkey('a', KeyboardPlayer.turn_left)
             keyboard.add_hotkey('w', KeyboardPlayer.go_straight)
             keyboard.add_hotkey('d', KeyboardPlayer.turn_right)
-    
+
     @staticmethod
     def turn_left():
         KeyboardPlayer.KEY_PRESSED = GameAction.LEFT
-    
+
     @staticmethod
     def go_straight():
         KeyboardPlayer.KEY_PRESSED = GameAction.STRAIGHT
-    
+
     @staticmethod
     def turn_right():
         KeyboardPlayer.KEY_PRESSED = GameAction.RIGHT
-        
-    def get_action(self, state: GameState) -> GameAction:
+
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         if not self.use_keyboard_listener:
             left_key, right_key = 'a', 'd'
             a = input(f"Enter your move ({left_key} => left / {right_key} => right / ENTER => straight):")
@@ -45,7 +45,7 @@ class KeyboardPlayer(Player):
 
 
 class RandomPlayer(Player):
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         i = np.random.randint(low=0, high=3)
         return list(GameAction)[i]
 
@@ -56,7 +56,7 @@ class StaticAgent(Player):
         self._actions = actions
         self._current_action = 0
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         action_index = self._current_action
         self._current_action += 1
         return self._actions[action_index] if action_index < len(self._actions) else self._actions[-1]
@@ -64,12 +64,14 @@ class StaticAgent(Player):
 
 class GreedyAgent(Player):
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         # init with all possible actions for the case where the agent is alone. it will (possibly) be overridden later
+        start_time = time.time()
         best_actions = state.get_possible_actions(player_index=self.player_index)
         best_value = -np.inf
         for action in state.get_possible_actions(player_index=self.player_index):
-            for opponents_actions in state.get_possible_actions_dicts_given_action(action, player_index=self.player_index):
+            for opponents_actions in state.get_possible_actions_dicts_given_action(action,
+                                                                                   player_index=self.player_index):
                 opponents_actions[self.player_index] = action
                 next_state = get_next_state(state, opponents_actions)
                 h_value = self._heuristic(next_state)
@@ -82,7 +84,9 @@ class GreedyAgent(Player):
                 if len(state.opponents_alive) > 2:
                     # consider only 1 possible opponents actions to reduce time & memory:
                     break
-
+        end_time = time.time()
+        if self.player_index == 0:
+            delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
     def _heuristic(self, state: GameState) -> float:
@@ -102,13 +106,14 @@ class GreedyAgent(Player):
         optimistic sum of rewards = (a*1) + (a^2)*1 + (a^3)*1 +... + (a^k)*1
         = a + a^2 + a^3 +... + a^k  (multiplying by 1 disappears)
         = a*( 1-(a^k) ) / (1-a)       (sum of geometric series)
-        
+
         """
         max_possible_fruits = len(state.fruits_locations) + sum([s.length for s in state.snakes
                                                                  if s.index != self.player_index and s.alive])
         turns_left = (state.game_duration_in_turns - state.turn_number)
         max_possible_fruits = min(max_possible_fruits, turns_left)
-        optimistic_future_reward = discount_factor*(1 - discount_factor ** max_possible_fruits) / (1-discount_factor)
+        optimistic_future_reward = discount_factor * (1 - discount_factor ** max_possible_fruits) / (
+                    1 - discount_factor)
         return state.snakes[self.player_index].length + optimistic_future_reward
 
 

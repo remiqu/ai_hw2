@@ -292,7 +292,6 @@ class GameState:
         The agent's snake (indicated by player_index) will be in the first layer (matrix),
         then the rest n_snakes-1 opponents' snakes,
         and in the last layer (matrix) of the tensor is the placements of the fruits.
-
         :param player_perspective: int. the index of the agent.
         :return: numpy array with the shape defined in the observation space.
         """
@@ -361,7 +360,6 @@ class GameState:
 
 def get_next_state(game_state: GameState, living_players_actions: dict) -> GameState:
     """
-
     :param game_state: a GameState object that represents a certain state of the game, which you desire to know the
     next state obtained after performing the given actions upon this given game state.
     :param living_players_actions: a dictionary with an action for each living player.
@@ -394,7 +392,6 @@ class SnakesBackendSync:
     """
     Objects of this class are managing the game. It stores the state of the grid, the snakes etc. It handles the
     actions being made by the agents.
-
     There are 3 possible actions the agents can perform:
         0 --> Left turn
         1 --> Continue straight
@@ -536,7 +533,7 @@ class SnakesBackendSync:
             if game_state.current_winner is None or game_state.current_winner.length <= longest_snake_length:
                 game_state.current_winner = longest_this_turn
 
-    def run_game(self, human_speed=False, render=True):
+    def run_game(self, human_speed=False, render=True, length=0, delta_time=0):
         if render:
             self.render()
         while self.game_state.turn_number < self.game_duration_in_turns:
@@ -545,7 +542,7 @@ class SnakesBackendSync:
             if human_speed:
                 time.sleep(0.1)
             agents_actions = {
-                agent_index: agent_controller.get_action(self.game_state)
+                agent_index: agent_controller.get_action(self.game_state, delta_time)
                 for agent_index, agent_controller in enumerate(self._agents_controllers)
                 if self.game_state.snakes[agent_index].alive
             }
@@ -557,6 +554,7 @@ class SnakesBackendSync:
             logging.info(f"Current Winner: {self.game_state.current_winner}")
 
             self.played_this_turn = []
+        length[0] += self.game_state.snakes[0].length
         print(f"Winner: {self.game_state.current_winner}")
         # return self.game_state.current_winner.length
 

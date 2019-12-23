@@ -1,4 +1,4 @@
-from environment import Player, GameState, GameAction, get_next_state
+from environment import Player, GameState, GameAction, get_next_state, time
 from utils import get_fitness
 import numpy as np
 from enum import Enum
@@ -16,7 +16,7 @@ def heuristic(state: GameState, player_index: int) -> float:
         return 0
 
     head = state.snakes[player_index].head
-    sum = state.snakes[player_index].length
+    sum = 100 * state.snakes[player_index].length
 
     for fruit in state.fruits_locations:
         sum += 1 / (abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]))
@@ -76,11 +76,12 @@ class MinimaxAgent(Player):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_minimax(tb_next_state, depth - 1)
+                v = self.RB_minimax(tb_next_state, depth)
                 cur_min = min(v, cur_min)
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -91,6 +92,8 @@ class MinimaxAgent(Player):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
     # def max_value(self, state: TurnBasedGameState, depth) -> float:
@@ -183,14 +186,15 @@ class AlphaBetaAgent(MinimaxAgent):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_alphaBeta(tb_next_state, depth - 1, alpha, beta)
+                v = self.RB_alphaBeta(tb_next_state, depth, alpha, beta)
                 cur_min = min(v, cur_min)
                 beta = min(cur_min, beta)
                 if cur_min <= alpha:
                     return -np.inf
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -201,12 +205,9 @@ class AlphaBetaAgent(MinimaxAgent):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
-
-
-
-
-
 
 
 def SAHC_sideways():
@@ -215,28 +216,13 @@ def SAHC_sideways():
     We give you the freedom to choose an initial state as you wish. You may start with a deterministic state (think of
     examples, what interesting options do you have?), or you may randomly sample one (you may use any distribution you
     like). In any case, write it in your report and describe your choice.
-
     an outline of the algorithm can be
     1) pick an initial state
     2) perform the search according to the algorithm
     3) print the best moves vector you found.
     :return:
     """
-    steps = []
-    for i in range(50):
-        steps.append(np.random.choice(GameAction))
 
-    for i in range(50):
-        best_action = GameAction.LEFT
-        best_score = 0
-        for action in GameAction:
-            steps[i] = action
-            score = get_fitness(tuple(steps))
-            if score >= best_score:
-                best_score = score
-                best_action = action
-        steps[i] = best_action
-    print(steps)
 
 
 def local_search():
@@ -245,34 +231,13 @@ def local_search():
     We give you the freedom to choose an initial state as you wish. You may start with a deterministic state (think of
     examples, what interesting options do you have?), or you may randomly sample one (you may use any distribution you
     like). In any case, write it in your report and describe your choice.
-
     an outline of the algorithm can be
     1) pick an initial state/states
     2) perform the search according to the algorithm
     3) print the best moves vector you found.
     :return:
     """
-    steps = []
-    for i in range(50):
-        steps.append(np.random.choice(GameAction))
 
-    for i in range(50):
-
-        steps[i] = GameAction.RIGHT
-        score_right = get_fitness(tuple(steps))
-        steps[i] = GameAction.LEFT
-        score_left = get_fitness(tuple(steps))
-        steps[i] = GameAction.STRAIGHT
-        score_straight = get_fitness(tuple(steps))
-
-        score = score_left + score_right + score_straight
-        prob_right = score_right/score
-        prob_left = score_left/score
-        prob_straight = score_straight/score
-
-        action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 1, p=[prob_right, prob_left, prob_straight])
-        steps[i] = action[0]
-    print(steps)
 
 
     pass
@@ -285,5 +250,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    #SAHC_sideways()
+    SAHC_sideways()
     local_search()
