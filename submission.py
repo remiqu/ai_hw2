@@ -33,7 +33,7 @@ class MinimaxAgent(Player):
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
 
-    def __init__(self, depth=5):
+    def __init__(self, depth=6):
         self.depth = depth
 
     class Turn(Enum):
@@ -76,7 +76,7 @@ class MinimaxAgent(Player):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_minimax(tb_next_state, depth - 1)
+                v = self.RB_minimax(tb_next_state, depth)
                 cur_min = min(v, cur_min)
             return cur_min
 
@@ -85,7 +85,7 @@ class MinimaxAgent(Player):
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, state.depth - 1)
+            max_value = self.RB_minimax(next_state, state.depth-1)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
@@ -226,17 +226,56 @@ def SAHC_sideways():
     for i in range(50):
         steps.append(np.random.choice(GameAction))
 
-    for i in range(50):
-        best_action = GameAction.LEFT
-        best_score = 0
-        for action in GameAction:
-            steps[i] = action
-            score = get_fitness(tuple(steps))
-            if score >= best_score:
-                best_score = score
-                best_action = action
-        steps[i] = best_action
+
+    sideways_limit = 5
+    sideways_count = 0
+    best_score = get_fitness(tuple(steps))
+    visited_neighbours = []
+
+    while sideways_count <= sideways_limit:
+        current_score = best_score
+        sideways_neighbours = []
+        best_neighbour = []
+        for i in range(50):
+            neighbour = steps
+            for action in GameAction:
+                if action == steps[i]:
+                    continue
+                neighbour[i] = action
+                score = get_fitness(tuple(neighbour))
+                if score > best_score:
+                    best_score = score
+                    best_neighbour = neighbour
+                if score == current_score and neighbour not in visited_neighbours:
+                    sideways_neighbours.append(neighbour)
+        if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
+            break
+        elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
+            steps = best_neighbour
+            sideways_count = 0
+            visited_neighbours = []
+            visited_neighbours.append(steps)
+        elif len(sideways_neighbours) > 0:
+            steps = sideways_neighbours[0]
+            visited_neighbours.append(sideways_neighbours[0])
+            sideways_count += 1
+
+
     print(steps)
+
+    # for i in range(50):
+    #     best_action = GameAction.LEFT
+    #     best_score = 0
+    #     for action in GameAction:
+    #         steps[i] = action
+    #         score = get_fitness(tuple(steps))
+    #         if score >= best_score:
+    #             best_score = score
+    #             best_action = action
+    #     steps[i] = best_action
+    # print(steps)
+
+    limit = np.inf
 
 
 def local_search():
@@ -252,27 +291,81 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
-    steps = []
-    for i in range(50):
-        steps.append(np.random.choice(GameAction))
 
-    for i in range(50):
+    restart_limit = 10
+    best_steps_list = []
+    best_score_list = []
+    for k in range(restart_limit):
+        steps = []
+        for i in range(50):
+            steps.append(np.random.choice(GameAction))
 
-        steps[i] = GameAction.RIGHT
-        score_right = get_fitness(tuple(steps))
-        steps[i] = GameAction.LEFT
-        score_left = get_fitness(tuple(steps))
-        steps[i] = GameAction.STRAIGHT
-        score_straight = get_fitness(tuple(steps))
+        sideways_limit = 5
+        sideways_count = 0
+        best_score = get_fitness(tuple(steps))
+        visited_neighbours = []
 
-        score = score_left + score_right + score_straight
-        prob_right = score_right/score
-        prob_left = score_left/score
-        prob_straight = score_straight/score
+        while sideways_count <= sideways_limit:
+            current_score = best_score
+            sideways_neighbours = []
+            best_neighbour = []
+            for i in range(50):
+                neighbour = steps
+                for action in GameAction:
+                    if action == steps[i]:
+                        continue
+                    neighbour[i] = action
+                    score = get_fitness(tuple(neighbour))
+                    if score > best_score:
+                        best_score = score
+                        best_neighbour = neighbour
+                    if score == current_score and neighbour not in visited_neighbours:
+                        sideways_neighbours.append(neighbour)
+            if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
+                break
+            elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
+                steps = best_neighbour
+                sideways_count = 0
+                visited_neighbours = []
+                visited_neighbours.append(steps)
+            elif len(sideways_neighbours) > 0:
+                steps = sideways_neighbours[0]
+                visited_neighbours.append(sideways_neighbours[0])
+                sideways_count += 1
 
-        action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 1, p=[prob_right, prob_left, prob_straight])
-        steps[i] = action[0]
-    print(steps)
+        best_steps_list.append(steps)
+        best_score_list.append(best_score)
+
+    best_score = max(best_score_list)
+    best_index = 0
+    for i in range(restart_limit):
+        if best_steps_list[i] == best_score:
+            best_index = i
+            break
+
+    best_steps = best_steps_list[best_index]
+
+    print(best_score)
+    print(best_steps)
+
+    #
+    # for i in range(50):
+    #
+    #     steps[i] = GameAction.RIGHT
+    #     score_right = get_fitness(tuple(steps))
+    #     steps[i] = GameAction.LEFT
+    #     score_left = get_fitness(tuple(steps))
+    #     steps[i] = GameAction.STRAIGHT
+    #     score_straight = get_fitness(tuple(steps))
+    #
+    #     score = score_left + score_right + score_straight
+    #     prob_right = score_right/score
+    #     prob_left = score_left/score
+    #     prob_straight = score_straight/score
+    #
+    #     action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 1, p=[prob_right, prob_left, prob_straight])
+    #     steps[i] = action[0]
+    # print(steps)
 
 
     pass
@@ -285,5 +378,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    #SAHC_sideways()
+    # SAHC_sideways()
     local_search()
