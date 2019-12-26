@@ -58,9 +58,7 @@ class MinimaxAgent(Player):
         return np.inf if state.game_state.current_winner == self.player_index else -np.inf
 
     def RB_minimax(self, state: TurnBasedGameState, depth):
-        if state.game_state.is_terminal_state:
-            return self.utility(state)
-        if depth == 0:
+        if depth == 0 or state.game_state.is_terminal_state:
             return heuristic(state.game_state, self.player_index)
         if state.turn == self.Turn.AGENT_TURN:
             cur_max = -np.inf
@@ -165,9 +163,7 @@ class MinimaxAgent(Player):
 class AlphaBetaAgent(MinimaxAgent):
 
     def RB_alphaBeta(self, state: MinimaxAgent.TurnBasedGameState, depth, alpha, beta):
-        if state.game_state.is_terminal_state:
-            return self.utility(state)
-        if depth == 0:
+        if depth == 0 or state.game_state.is_terminal_state:
             return heuristic(state.game_state, self.player_index)
         if state.turn == self.Turn.AGENT_TURN:
             cur_max = -np.inf
