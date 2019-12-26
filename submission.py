@@ -66,7 +66,7 @@ class MinimaxAgent(Player):
             cur_max = -np.inf
             for action in state.game_state.get_possible_actions(player_index=self.player_index):
                 next_state = self.TurnBasedGameState(state.game_state, action)
-                v = self.RB_minimax(next_state, depth - 1)
+                v = self.RB_minimax(next_state, depth)
                 cur_max = max(v, cur_max)
             return cur_max
         else:
@@ -76,7 +76,7 @@ class MinimaxAgent(Player):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_minimax(tb_next_state, depth)
+                v = self.RB_minimax(tb_next_state, depth - 1)
                 cur_min = min(v, cur_min)
             return cur_min
 
@@ -86,7 +86,7 @@ class MinimaxAgent(Player):
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, state.depth - 1)
+            max_value = self.RB_minimax(next_state, state.depth)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
