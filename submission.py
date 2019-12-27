@@ -2,6 +2,7 @@ from environment import Player, GameState, GameAction, get_next_state
 from utils import get_fitness
 import numpy as np
 from enum import Enum
+import copy
 
 n = 50
 
@@ -206,6 +207,7 @@ class AlphaBetaAgent(MinimaxAgent):
 
 
 
+
 def SAHC_sideways_internal(steps):
     sideways_limit = 5
     sideways_count = 0
@@ -217,7 +219,7 @@ def SAHC_sideways_internal(steps):
         sideways_neighbours = []
         best_neighbour = []
         for i in range(50):
-            neighbour = steps
+            neighbour = copy.deepcopy(steps)
             for action in GameAction:
                 if action == steps[i]:
                     continue
@@ -225,24 +227,25 @@ def SAHC_sideways_internal(steps):
                 score = get_fitness(tuple(neighbour))
                 if score > best_score:
                     best_score = score
-                    best_neighbour = neighbour
+                    best_neighbour = copy.deepcopy(neighbour)
                 if score == current_score and neighbour not in visited_neighbours:
                     sideways_neighbours.append(neighbour)
         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
             break
-        elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
-            steps = best_neighbour
+        elif best_score > current_score:
+            print("changing")
+            print(get_fitness(steps))
+            steps = copy.deepcopy(best_neighbour)
             sideways_count = 0
-            visited_neighbours = []
-            visited_neighbours.append(steps)
+            visited_neighbours = [steps]
         elif len(sideways_neighbours) > 0:
             steps = sideways_neighbours[0]
             visited_neighbours.append(sideways_neighbours[0])
             sideways_count += 1
+        print(get_fitness(steps))
 
     print(get_fitness(steps))
     print(steps)
-
 
 
 
@@ -283,9 +286,9 @@ def SAHC_sideways():
 
 def reproduce(steps1, steps2):
     c = np.random.choice(n)
-    steps3 = steps1[0:c]
+    steps3 = copy.deepcopy(steps1[0:c])
     steps3.extend(steps2[c:n])
-    steps4 = steps2[0:c]
+    steps4 = copy.deepcopy(steps2[0:c])
     steps4.extend(steps1[c:n])
     if get_fitness(steps3) >= get_fitness(steps4):
         return steps3
@@ -295,7 +298,7 @@ def reproduce(steps1, steps2):
 def mutate(steps):
     for i in range(50):
         steps_score = get_fitness(tuple(steps))
-        neighbour = steps
+        neighbour = copy.deepcopy(steps)
         for action in GameAction:
             if action == steps[i]:
                 continue
@@ -303,7 +306,7 @@ def mutate(steps):
             score = get_fitness(tuple(neighbour))
             if score > steps_score:
                 steps_score = score
-                steps = neighbour
+                steps = copy.deepcopy(neighbour)
     return steps
 
 def local_search():
@@ -319,7 +322,7 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
-    population_number = 16
+    population_number = 2
     population = []
 
     for j in range(population_number):
@@ -333,15 +336,19 @@ def local_search():
     while population_number > 1:
         population.sort(key=get_fitness)
         population_number /= 2
+        if (population_number == 1):
+            break
         population = population[0:population_number]
+
 
         new_population = []
         for i in range(int(len(population)/2)):
             child = reproduce(population[2*i],population[2*i+1])
             child = mutate(child)
             new_population.append(child)
-        population = new_population
+        population = copy.deepcopy(new_population)
         population_number = len(new_population)
+
 
     print(population[0])
     print(get_fitness(population[0]))
@@ -430,7 +437,7 @@ def local_search():
     # print(steps)
 
 
-    pass
+
 
 
 class TournamentAgent(Player):
@@ -440,5 +447,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-     SAHC_sideways()
-    #local_search()
+    #SAHC_sideways()
+    local_search()
