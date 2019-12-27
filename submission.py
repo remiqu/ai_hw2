@@ -266,8 +266,8 @@ def SAHC_sideways():
     for i in range(50):
         steps.append(np.random.choice(GameAction))
 
+    print(steps)
     SAHC_sideways_internal(steps)
-
 
     # for i in range(50):
     #     best_action = GameAction.LEFT
@@ -447,5 +447,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    #SAHC_sideways()
-    local_search()
+    SAHC_sideways()
+   # local_search()
