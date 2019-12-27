@@ -121,7 +121,7 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
         print(length_3[int(depth - 2)][0] / 10, time_3[int(depth - 2)][0] / 10)
     length_4 = [[0], [0], [0]]
     time_4 = [[0], [0], [0]]
-    for depth in [4]:
+    for depth in [2, 3, 4]:
         for i in range(10):
             players = [AlphaBetaAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
             start_game_with_players(players,
