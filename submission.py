@@ -3,6 +3,7 @@ from utils import get_fitness
 import numpy as np
 from enum import Enum
 
+n = 50
 
 def heuristic(state: GameState, player_index: int) -> float:
     """
@@ -205,28 +206,7 @@ class AlphaBetaAgent(MinimaxAgent):
 
 
 
-
-
-
-
-def SAHC_sideways():
-    """
-    Implement Steepest Ascent Hill Climbing with Sideways Steps Here.
-    We give you the freedom to choose an initial state as you wish. You may start with a deterministic state (think of
-    examples, what interesting options do you have?), or you may randomly sample one (you may use any distribution you
-    like). In any case, write it in your report and describe your choice.
-
-    an outline of the algorithm can be
-    1) pick an initial state
-    2) perform the search according to the algorithm
-    3) print the best moves vector you found.
-    :return:
-    """
-    steps = []
-    for i in range(50):
-        steps.append(np.random.choice(GameAction))
-
-
+def SAHC_sideways_internal(steps):
     sideways_limit = 5
     sideways_count = 0
     best_score = get_fitness(tuple(steps))
@@ -260,8 +240,31 @@ def SAHC_sideways():
             visited_neighbours.append(sideways_neighbours[0])
             sideways_count += 1
 
-
+    print(get_fitness(steps))
     print(steps)
+
+
+
+
+def SAHC_sideways():
+    """
+    Implement Steepest Ascent Hill Climbing with Sideways Steps Here.
+    We give you the freedom to choose an initial state as you wish. You may start with a deterministic state (think of
+    examples, what interesting options do you have?), or you may randomly sample one (you may use any distribution you
+    like). In any case, write it in your report and describe your choice.
+
+    an outline of the algorithm can be
+    1) pick an initial state
+    2) perform the search according to the algorithm
+    3) print the best moves vector you found.
+    :return:
+    """
+    steps = []
+    for i in range(50):
+        steps.append(np.random.choice(GameAction))
+
+    SAHC_sideways_internal(steps)
+
 
     # for i in range(50):
     #     best_action = GameAction.LEFT
@@ -278,6 +281,31 @@ def SAHC_sideways():
     limit = np.inf
 
 
+def reproduce(steps1, steps2):
+    c = np.random.choice(n)
+    steps3 = steps1[0:c]
+    steps3.extend(steps2[c:n])
+    steps4 = steps2[0:c]
+    steps4.extend(steps1[c:n])
+    if get_fitness(steps3) >= get_fitness(steps4):
+        return steps3
+    return steps4
+
+
+def mutate(steps):
+    for i in range(50):
+        steps_score = get_fitness(tuple(steps))
+        neighbour = steps
+        for action in GameAction:
+            if action == steps[i]:
+                continue
+            neighbour[i] = action
+            score = get_fitness(tuple(neighbour))
+            if score > steps_score:
+                steps_score = score
+                steps = neighbour
+    return steps
+
 def local_search():
     """
     Implement your own local search algorithm here.
@@ -291,62 +319,96 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
+    population_number = 16
+    population = []
 
-    restart_limit = 10
-    best_steps_list = []
-    best_score_list = []
-    for k in range(restart_limit):
+    for j in range(population_number):
         steps = []
         for i in range(50):
             steps.append(np.random.choice(GameAction))
+        SAHC_sideways_internal(steps)
+        population.append(steps)
 
-        sideways_limit = 5
-        sideways_count = 0
-        best_score = get_fitness(tuple(steps))
-        visited_neighbours = []
 
-        while sideways_count <= sideways_limit:
-            current_score = best_score
-            sideways_neighbours = []
-            best_neighbour = []
-            for i in range(50):
-                neighbour = steps
-                for action in GameAction:
-                    if action == steps[i]:
-                        continue
-                    neighbour[i] = action
-                    score = get_fitness(tuple(neighbour))
-                    if score > best_score:
-                        best_score = score
-                        best_neighbour = neighbour
-                    if score == current_score and neighbour not in visited_neighbours:
-                        sideways_neighbours.append(neighbour)
-            if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
-                break
-            elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
-                steps = best_neighbour
-                sideways_count = 0
-                visited_neighbours = []
-                visited_neighbours.append(steps)
-            elif len(sideways_neighbours) > 0:
-                steps = sideways_neighbours[0]
-                visited_neighbours.append(sideways_neighbours[0])
-                sideways_count += 1
+    while population_number > 1:
+        population.sort(key=get_fitness)
+        population_number /= 2
+        population = population[0:population_number]
 
-        best_steps_list.append(steps)
-        best_score_list.append(best_score)
+        new_population = []
+        for i in range(int(len(population)/2)):
+            child = reproduce(population[2*i],population[2*i+1])
+            child = mutate(child)
+            new_population.append(child)
+        population = new_population
+        population_number = len(new_population)
 
-    best_score = max(best_score_list)
-    best_index = 0
-    for i in range(restart_limit):
-        if best_steps_list[i] == best_score:
-            best_index = i
-            break
+    print(population[0])
+    print(get_fitness(population[0]))
 
-    best_steps = best_steps_list[best_index]
 
-    print(best_score)
-    print(best_steps)
+
+
+
+
+
+
+
+    # restart_limit = 10
+    # best_steps_list = []
+    # best_score_list = []
+    # for k in range(restart_limit):
+    #     steps = []
+    #     for i in range(50):
+    #         steps.append(np.random.choice(GameAction))
+    #
+    #     sideways_limit = 5
+    #     sideways_count = 0
+    #     best_score = get_fitness(tuple(steps))
+    #     visited_neighbours = []
+    #
+    #     while sideways_count <= sideways_limit:
+    #         current_score = best_score
+    #         sideways_neighbours = []
+    #         best_neighbour = []
+    #         for i in range(50):
+    #             neighbour = steps
+    #             for action in GameAction:
+    #                 if action == steps[i]:
+    #                     continue
+    #                 neighbour[i] = action
+    #                 score = get_fitness(tuple(neighbour))
+    #                 if score > best_score:
+    #                     best_score = score
+    #                     best_neighbour = neighbour
+    #                 if score == current_score and neighbour not in visited_neighbours:
+    #                     sideways_neighbours.append(neighbour)
+    #         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
+    #             break
+    #         elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
+    #             steps = best_neighbour
+    #             sideways_count = 0
+    #             visited_neighbours = []
+    #             visited_neighbours.append(steps)
+    #         elif len(sideways_neighbours) > 0:
+    #             steps = sideways_neighbours[0]
+    #             visited_neighbours.append(sideways_neighbours[0])
+    #             sideways_count += 1
+    #
+    #     best_steps_list.append(steps)
+    #     best_score_list.append(best_score)
+    #
+    # best_score = max(best_score_list)
+    # best_index = 0
+    # for i in range(restart_limit):
+    #     if best_steps_list[i] == best_score:
+    #         best_index = i
+    #         break
+    #
+    # best_steps = best_steps_list[best_index]
+    #
+    # print(best_score)
+    # print(best_steps)
 
     #
     # for i in range(50):
@@ -378,5 +440,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    # SAHC_sideways()
-    local_search()
+     SAHC_sideways()
+    #local_search()
