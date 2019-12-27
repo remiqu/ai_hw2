@@ -78,6 +78,7 @@ class MinimaxAgent(Player):
                 cur_min = min(v, cur_min)
             return cur_min
 
+
     def get_action(self, state: GameState, delta_time=None) -> GameAction:
         start_time = time.time()
         best_value = -np.inf
