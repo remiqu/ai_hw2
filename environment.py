@@ -533,7 +533,7 @@ class SnakesBackendSync:
             if game_state.current_winner is None or game_state.current_winner.length <= longest_snake_length:
                 game_state.current_winner = longest_this_turn
 
-    def run_game(self, human_speed=False, render=True, length=0, delta_time=0):
+    def run_game(self, human_speed=False, render=True, length=[0], delta_time=0):
         if render:
             self.render()
         while self.game_state.turn_number < self.game_duration_in_turns:

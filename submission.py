@@ -2,6 +2,7 @@ from environment import Player, GameState, GameAction, get_next_state
 from utils import get_fitness
 import numpy as np
 from enum import Enum
+import copy
 
 n = 50
 
@@ -217,7 +218,7 @@ def SAHC_sideways_internal(steps):
         sideways_neighbours = []
         best_neighbour = []
         for i in range(50):
-            neighbour = steps
+            neighbour = copy.deepcopy(steps)
             for action in GameAction:
                 if action == steps[i]:
                     continue
@@ -225,20 +226,22 @@ def SAHC_sideways_internal(steps):
                 score = get_fitness(tuple(neighbour))
                 if score > best_score:
                     best_score = score
-                    best_neighbour = neighbour
+                    best_neighbour = copy.deepcopy(neighbour)
                 if score == current_score and neighbour not in visited_neighbours:
                     sideways_neighbours.append(neighbour)
         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
             break
-        elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
-            steps = best_neighbour
+        elif best_score > current_score:
+            print("changing")
+            print(get_fitness(steps))
+            steps = copy.deepcopy(best_neighbour)
             sideways_count = 0
-            visited_neighbours = []
-            visited_neighbours.append(steps)
+            visited_neighbours = [steps]
         elif len(sideways_neighbours) > 0:
             steps = sideways_neighbours[0]
             visited_neighbours.append(sideways_neighbours[0])
             sideways_count += 1
+        print(get_fitness(steps))
 
     print(get_fitness(steps))
     print(steps)
@@ -328,7 +331,6 @@ def local_search():
             steps.append(np.random.choice(GameAction))
         SAHC_sideways_internal(steps)
         population.append(steps)
-
 
     while population_number > 1:
         population.sort(key=get_fitness)
@@ -440,5 +442,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-     SAHC_sideways()
-    #local_search()
+    # SAHC_sideways()
+    local_search()
