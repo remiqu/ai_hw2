@@ -60,6 +60,8 @@ class MinimaxAgent(Player):
     def RB_minimax(self, state: TurnBasedGameState, depth):
         if state.game_state.is_terminal_state:
             return state.game_state.snakes[self.player_index].length
+        if depth == 0:
+            return heuristic(state.game_state, self.player_index)
         if state.turn == self.Turn.AGENT_TURN:
             cur_max = -np.inf
             for action in state.game_state.get_possible_actions(player_index=self.player_index):
