@@ -115,14 +115,14 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
                                     fast_run=fast_run,
                                     graphics_off=graphics_off,
                                     depth=depth,
-                                    length=length_3[int(depth / 2 - 1)],
-                                    time=time_3[int(depth / 2 - 1)])
+                                    length=length_3[int(depth - 2)],
+                                    time=time_3[int(depth - 2)])
 
-    print(length_3[1][0] / 10, time_3[1][0] / 10)
+        print(length_3[int(depth - 2)][0] / 10, time_3[int(depth - 2)][0] / 10)
     length_4 = [[0], [0], [0]]
     time_4 = [[0], [0], [0]]
-    for depth in [2, 4, 6]:
-        for i in range(3):
+    for depth in [2, 3, 4]:
+        for i in range(10):
             players = [AlphaBetaAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
             start_game_with_players(players,
                                     game_duration,
@@ -132,18 +132,18 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
                                     fast_run=fast_run,
                                     graphics_off=graphics_off,
                                     depth=depth,
-                                    length=length_4[int(depth / 2 - 1)],
-                                    time=time_4[int(depth / 2 - 1)])
-        print(length_4[int(depth/2-1)][0] / 10, time_4[int(depth/2-1)][0] / 10)
+                                    length=length_4[int(depth - 2)],
+                                    time=time_4[int(depth - 2)])
+        # print(length_4[int(depth-2)][0] / 10, time_4[int(depth-2)][0] / 10)
 
     with open('experiment.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['GreedyAgent', length_1[0] / 10, time_1[0] / 10])
         writer.writerow(['betterAgent', length_2[0] / 10, time_2[0] / 10])
         for i in range(3):
-            writer.writerow(['MinMaxAgent', 2 * i, length_3[i][0] / 10, time_3[i][0] / 10])
+            writer.writerow(['MinMaxAgent', i+2, length_3[i][0] / 10, time_3[i][0] / 10])
         for i in range(3):
-            writer.writerow(['AlphaBetaAgent', 2 * i, length_4[i][0] / 10, time_4[i][0] / 10])
+            writer.writerow(['AlphaBetaAgent', i+2, length_4[i][0] / 10, time_4[i][0] / 10])
 
 
 def start_custom_game(p1: str, p2: str, game_duration: int, board_width: int, board_height: int,
