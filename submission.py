@@ -207,6 +207,7 @@ class AlphaBetaAgent(MinimaxAgent):
 
 
 
+
 def SAHC_sideways_internal(steps):
     sideways_limit = 5
     sideways_count = 0
@@ -248,7 +249,6 @@ def SAHC_sideways_internal(steps):
 
 
 
-
 def SAHC_sideways():
     """
     Implement Steepest Ascent Hill Climbing with Sideways Steps Here.
@@ -286,9 +286,9 @@ def SAHC_sideways():
 
 def reproduce(steps1, steps2):
     c = np.random.choice(n)
-    steps3 = steps1[0:c]
+    steps3 = copy.deepcopy(steps1[0:c])
     steps3.extend(steps2[c:n])
-    steps4 = steps2[0:c]
+    steps4 = copy.deepcopy(steps2[0:c])
     steps4.extend(steps1[c:n])
     if get_fitness(steps3) >= get_fitness(steps4):
         return steps3
@@ -298,7 +298,7 @@ def reproduce(steps1, steps2):
 def mutate(steps):
     for i in range(50):
         steps_score = get_fitness(tuple(steps))
-        neighbour = steps
+        neighbour = copy.deepcopy(steps)
         for action in GameAction:
             if action == steps[i]:
                 continue
@@ -306,7 +306,7 @@ def mutate(steps):
             score = get_fitness(tuple(neighbour))
             if score > steps_score:
                 steps_score = score
-                steps = neighbour
+                steps = copy.deepcopy(neighbour)
     return steps
 
 def local_search():
@@ -332,18 +332,23 @@ def local_search():
         SAHC_sideways_internal(steps)
         population.append(steps)
 
+
     while population_number > 1:
         population.sort(key=get_fitness)
         population_number /= 2
-        population = population[0:int(population_number)]
+        if (population_number == 1):
+            break
+        population = population[0:population_number]
+
 
         new_population = []
         for i in range(int(len(population)/2)):
-            child = reproduce(population[2*i], population[2*i+1])
+            child = reproduce(population[2*i],population[2*i+1])
             child = mutate(child)
             new_population.append(child)
         population = copy.deepcopy(new_population)
         population_number = len(new_population)
+
 
     print(population[0])
     print(get_fitness(population[0]))
@@ -432,7 +437,7 @@ def local_search():
     # print(steps)
 
 
-    pass
+
 
 
 class TournamentAgent(Player):
@@ -442,5 +447,5 @@ class TournamentAgent(Player):
 
 
 if __name__ == '__main__':
-    # SAHC_sideways()
+    #SAHC_sideways()
     local_search()
