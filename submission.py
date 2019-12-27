@@ -322,7 +322,7 @@ def local_search():
     3) print the best moves vector you found.
     :return:
     """
-    population_number = 16
+    population_number = 2
     population = []
 
     for j in range(population_number):
@@ -335,14 +335,14 @@ def local_search():
     while population_number > 1:
         population.sort(key=get_fitness)
         population_number /= 2
-        population = population[0:population_number]
+        population = population[0:int(population_number)]
 
         new_population = []
         for i in range(int(len(population)/2)):
-            child = reproduce(population[2*i],population[2*i+1])
+            child = reproduce(population[2*i], population[2*i+1])
             child = mutate(child)
             new_population.append(child)
-        population = new_population
+        population = copy.deepcopy(new_population)
         population_number = len(new_population)
 
     print(population[0])
