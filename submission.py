@@ -18,7 +18,7 @@ def heuristic(state: GameState, player_index: int) -> float:
         return 0
 
     head = state.snakes[player_index].head
-    sum = state.snakes[player_index].length
+    sum = 100*state.snakes[player_index].length
 
     for fruit in state.fruits_locations:
         sum += 1 / (abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]))
@@ -35,7 +35,7 @@ class MinimaxAgent(Player):
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
 
-    def __init__(self, depth=6):
+    def __init__(self, depth=3):
         self.depth = depth
 
     class Turn(Enum):
@@ -61,14 +61,14 @@ class MinimaxAgent(Player):
 
     def RB_minimax(self, state: TurnBasedGameState, depth):
         if state.game_state.is_terminal_state:
-            return self.utility(state)
+            return state.game_state.snakes[self.player_index].length + state.game_state.snakes[self.player_index].alive
         if depth == 0:
             return heuristic(state.game_state, self.player_index)
         if state.turn == self.Turn.AGENT_TURN:
             cur_max = -np.inf
             for action in state.game_state.get_possible_actions(player_index=self.player_index):
                 next_state = self.TurnBasedGameState(state.game_state, action)
-                v = self.RB_minimax(next_state, depth - 1)
+                v = self.RB_minimax(next_state, depth)
                 cur_max = max(v, cur_max)
             return cur_max
         else:
@@ -78,7 +78,7 @@ class MinimaxAgent(Player):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_minimax(tb_next_state, depth)
+                v = self.RB_minimax(tb_next_state, depth-1)
                 cur_min = min(v, cur_min)
             return cur_min
 
@@ -87,7 +87,7 @@ class MinimaxAgent(Player):
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, state.depth-1)
+            max_value = self.RB_minimax(next_state, self.depth-1)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
