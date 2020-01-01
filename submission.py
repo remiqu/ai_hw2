@@ -1,8 +1,11 @@
-from environment import Player, GameState, GameAction, get_next_state
+from environment import Player, GameState, GameAction, get_next_state, time
+from environment import SnakesBackendSync, Grid2DSize
+from agents import GreedyAgent
 from utils import get_fitness
 import numpy as np
 from enum import Enum
 import copy
+import signal
 
 n = 50
 
@@ -27,6 +30,41 @@ def heuristic(state: GameState, player_index: int) -> float:
     return sum
 
 
+def get_alpha_beta_against_minmax():
+    n_agents = 2
+    agent1 = MinimaxAgent()
+    agent2 = AlphaBetaAgent()
+    opponents = [GreedyAgent() for _ in range(n_agents - 1)]
+    players1 = [agent1] + opponents
+    players2 = [agent2] + opponents
+
+    board_width = 40
+    board_height = 40
+    n_fruits = 50
+    game_duration = 500
+
+    length_1 = [0]
+    time_1 = [0]
+    length_2 = [0]
+    time_2 = [0]
+
+    env1 = SnakesBackendSync(players1,
+                             grid_size=Grid2DSize(board_width, board_height),
+                             n_fruits=n_fruits,
+                             game_duration_in_turns=game_duration, random_seed=15, depth=2)
+    env1.run_game(human_speed=False, render=True, length=length_1, delta_time=time_1)
+
+    env2 = SnakesBackendSync(players2,
+                             grid_size=Grid2DSize(board_width, board_height),
+                             n_fruits=n_fruits,
+                             game_duration_in_turns=game_duration, random_seed=15, depth=2
+                             )
+    env2.run_game(human_speed=False, render=True, length=length_2, delta_time=time_2)
+    print("lenght 1: " + str(length_1) + "length 2: " + str(length_2))
+    print("time 1: " + str(time_1) + "time 2: " + str(time_2))
+    np.random.seed()
+
+
 class MinimaxAgent(Player):
     """
     This class implements the Minimax algorithm.
@@ -36,7 +74,8 @@ class MinimaxAgent(Player):
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
 
-    def __init__(self, depth=6):
+    def __init__(self, depth=3):
+        super(MinimaxAgent, self).__init__()
         self.depth = depth
 
     class Turn(Enum):
@@ -58,7 +97,7 @@ class MinimaxAgent(Player):
             return MinimaxAgent.Turn.AGENT_TURN if self.agent_action is None else MinimaxAgent.Turn.OPPONENTS_TURN
 
     def utility(self, state: TurnBasedGameState) -> float:
-        return np.inf if state.game_state.current_winner == self.player_index else -np.inf
+        return state.game_state.snakes[self.player_index].length + state.game_state.snakes[self.player_index].alive
 
     def RB_minimax(self, state: TurnBasedGameState, depth):
         if state.game_state.is_terminal_state:
@@ -69,7 +108,7 @@ class MinimaxAgent(Player):
             cur_max = -np.inf
             for action in state.game_state.get_possible_actions(player_index=self.player_index):
                 next_state = self.TurnBasedGameState(state.game_state, action)
-                v = self.RB_minimax(next_state, depth - 1)
+                v = self.RB_minimax(next_state, depth)
                 cur_max = max(v, cur_max)
             return cur_max
         else:
@@ -79,21 +118,24 @@ class MinimaxAgent(Player):
                 opponents_actions[self.player_index] = state.agent_action
                 next_state = get_next_state(state.game_state, opponents_actions)
                 tb_next_state = self.TurnBasedGameState(next_state, None)
-                v = self.RB_minimax(tb_next_state, depth)
+                v = self.RB_minimax(tb_next_state, depth - 1)
                 cur_min = min(v, cur_min)
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, state.depth-1)
+            max_value = self.RB_minimax(next_state, state.depth)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
     # def max_value(self, state: TurnBasedGameState, depth) -> float:
@@ -173,7 +215,7 @@ class AlphaBetaAgent(MinimaxAgent):
             cur_max = -np.inf
             for action in state.game_state.get_possible_actions(player_index=self.player_index):
                 next_state = self.TurnBasedGameState(state.game_state, action)
-                v = self.RB_alphaBeta(next_state, depth - 1, alpha, beta)
+                v = self.RB_alphaBeta(next_state, depth, alpha, beta)
                 cur_max = max(v, cur_max)
                 alpha = max(cur_max, alpha)
                 if cur_max >= beta:
@@ -193,20 +235,21 @@ class AlphaBetaAgent(MinimaxAgent):
                     return -np.inf
             return cur_min
 
-    def get_action(self, state: GameState) -> GameAction:
+    def get_action(self, state: GameState, delta_time=None) -> GameAction:
+        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_alphaBeta(next_state, self.depth - 1, -np.inf, np.inf)
+            max_value = self.RB_alphaBeta(next_state, self.depth, -np.inf, np.inf)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
+        end_time = time.time()
+        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
-
-
 
 
 def SAHC_sideways_internal(steps):
@@ -247,7 +290,6 @@ def SAHC_sideways_internal(steps):
 
     print(get_fitness(steps))
     print(steps)
-
 
 
 def SAHC_sideways():
@@ -310,6 +352,7 @@ def mutate(steps):
                 steps = copy.deepcopy(neighbour)
     return steps
 
+
 def local_search():
     """
     Implement your own local search algorithm here.
@@ -350,14 +393,6 @@ def local_search():
 
     print(population[0])
     print(get_fitness(population[0]))
-
-
-
-
-
-
-
-
 
     # restart_limit = 10
     # best_steps_list = []
@@ -435,15 +470,28 @@ def local_search():
     # print(steps)
 
 
+class TournamentAgent(AlphaBetaAgent):
 
+    def signal_handler(signum, frame, extra):
+        raise Exception("Timed out!")
 
+    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
+        saved_value = GameAction.LEFT
+        signal.signal(signal.SIGALRM, self.signal_handler)
+        signal.setitimer(signal.ITIMER_REAL, 60.0/500)
+        try:
+            i = 0
+            while 1:
+                self.depth = i
+                saved_value = self.get_action(state, delta_time=delta_time)
+                i += 1
 
-class TournamentAgent(Player):
-
-    def get_action(self, state: GameState) -> GameAction:
-        pass
+        except Exception:
+            return saved_value
 
 
 if __name__ == '__main__':
-    #SAHC_sideways()
-    local_search()
+    # SAHC_sideways()
+    # local_search()
+    get_alpha_beta_against_minmax()
+

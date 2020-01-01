@@ -243,16 +243,17 @@ class GameState:
 
         opponents_alive = self.get_opponents_alive(player_index=player_index)
         if len(opponents_alive) == 0:
-            return {player_index: action}
-        for i in range(len(GameAction) ** len(opponents_alive)):
-            opponents_actions_str = np.base_repr(i, base=len(GameAction))
-            opponents_actions_str = '0'*(len(opponents_alive) - len(opponents_actions_str)) + opponents_actions_str
-            # print(opponents_actions_str)
-            snake_actions = list(GameAction)
-            possible_actions_dict = {opp: snake_actions[int(opp_action_str)]
-                                     for opp, opp_action_str in zip(opponents_alive, opponents_actions_str)}
-            possible_actions_dict[player_index] = action
-            yield possible_actions_dict
+            yield {player_index: action}
+        else:
+            for i in range(len(GameAction) ** len(opponents_alive)):
+                opponents_actions_str = np.base_repr(i, base=len(GameAction))
+                opponents_actions_str = '0'*(len(opponents_alive) - len(opponents_actions_str)) + opponents_actions_str
+                # print(opponents_actions_str)
+                snake_actions = list(GameAction)
+                possible_actions_dict = {opp: snake_actions[int(opp_action_str)]
+                                         for opp, opp_action_str in zip(opponents_alive, opponents_actions_str)}
+                possible_actions_dict[player_index] = action
+                yield possible_actions_dict
 
     @property
     def n_agents(self):
@@ -533,7 +534,7 @@ class SnakesBackendSync:
             if game_state.current_winner is None or game_state.current_winner.length <= longest_snake_length:
                 game_state.current_winner = longest_this_turn
 
-    def run_game(self, human_speed=False, render=True, length=[0], delta_time=0):
+    def run_game(self, human_speed=False, render=True, length=[0], delta_time=[0]):
         if render:
             self.render()
         while self.game_state.turn_number < self.game_duration_in_turns:

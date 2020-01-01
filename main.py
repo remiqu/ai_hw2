@@ -19,7 +19,7 @@ def start_demo_game(n_agents: int, game_duration: int, board_width: int, board_h
 
 
 def start_game_with_players(players, game_duration: int, board_width: int, board_height: int, n_fruits: int,
-                            fast_run: bool = False, graphics_off: bool = False, depth: int = 5, length=None,
+                            fast_run: bool = False, graphics_off: bool = False, depth: int = 4, length=None,
                             time: list = None):
     if length is None:
         length = [0]
@@ -74,7 +74,7 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
 
     length_1 = [0]
     time_1 = [0]
-    for i in range(1):
+    for i in range(10):
         players = [GreedyAgent() for _ in range(n_agents)]
         start_game_with_players(players,
                                 game_duration,
@@ -89,7 +89,7 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
     print(length_1[0]/10, time_1[0]/10)
     length_2 = [0]
     time_2 = [0]
-    for i in range(1):
+    for i in range(10):
         players = [BetterGreedyAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
         start_game_with_players(players,
                                 game_duration,
@@ -104,7 +104,7 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
     length_3 = [[0], [0], [0]]
     time_3 = [[0], [0], [0]]
     for depth in [2, 3, 4]:
-        for i in range(1):
+        for i in range(10):
             print(depth)
             players = [MinimaxAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
             start_game_with_players(players,
@@ -122,7 +122,7 @@ def start_part_g(n_agents: int, game_duration: int, board_width: int, board_heig
     length_4 = [[0], [0], [0]]
     time_4 = [[0], [0], [0]]
     for depth in [2, 3, 4]:
-        for i in range(1):
+        for i in range(10):
             players = [AlphaBetaAgent()] + [GreedyAgent() for _ in range(n_agents - 1)]
             start_game_with_players(players,
                                     game_duration,
