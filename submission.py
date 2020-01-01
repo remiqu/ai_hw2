@@ -236,7 +236,6 @@ class AlphaBetaAgent(MinimaxAgent):
             return cur_min
 
     def get_action(self, state: GameState, delta_time=None) -> GameAction:
-        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -247,8 +246,6 @@ class AlphaBetaAgent(MinimaxAgent):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
-        end_time = time.time()
-        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
 
@@ -472,19 +469,18 @@ def local_search():
 
 class TournamentAgent(AlphaBetaAgent):
 
-    def signal_handler(signum, frame, extra):
+    def signal_handler(self, signum, frame):
         raise Exception("Timed out!")
 
     def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
         saved_value = GameAction.LEFT
         signal.signal(signal.SIGALRM, self.signal_handler)
         signal.setitimer(signal.ITIMER_REAL, 60.0/500)
-
         try:
-            i = 0
+            i = 1
             while 1:
                 self.depth = i
-                saved_value = self.get_action(state, delta_time=delta_time)
+                saved_value = super().get_action(state)
                 i += 1
 
         except Exception:
