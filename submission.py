@@ -479,6 +479,7 @@ class TournamentAgent(AlphaBetaAgent):
         saved_value = GameAction.LEFT
         signal.signal(signal.SIGALRM, self.signal_handler)
         signal.setitimer(signal.ITIMER_REAL, 60.0/500)
+
         try:
             i = 0
             while 1:
