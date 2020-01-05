@@ -1,11 +1,9 @@
-from environment import Player, GameState, GameAction, get_next_state, time
-from environment import SnakesBackendSync, Grid2DSize
-from agents import GreedyAgent
+from environment import Player, GameState, GameAction, get_next_state
 from utils import get_fitness
 import numpy as np
 from enum import Enum
 import copy
-import signal
+from agents import GreedyAgent
 
 n = 50
 
@@ -275,25 +273,9 @@ def local_search():
 
 
 
-class TournamentAgent(AlphaBetaAgent):
-
-    def signal_handler(self, signum, frame):
-        raise Exception("Timed out!")
-
-    def get_action(self, state: GameState, delta_time=[0]) -> GameAction:
-        saved_value = GameAction.LEFT
-        signal.signal(signal.SIGALRM, self.signal_handler)
-        signal.setitimer(signal.ITIMER_REAL, 60.0/500)
-        try:
-            i = 1
-            while 1:
-                self.depth = i
-                saved_value = super().get_action(state)
-                i += 1
-
-        except Exception:
-            return saved_value
-
+class TournamentAgent(GreedyAgent):
+    def _heuristic(self, state: GameState) -> float:
+        return heuristic(state, self.player_index)
 
 if __name__ == '__main__':
     SAHC_sideways()
