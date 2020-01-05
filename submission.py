@@ -30,41 +30,6 @@ def heuristic(state: GameState, player_index: int) -> float:
     return sum
 
 
-def get_alpha_beta_against_minmax():
-    n_agents = 2
-    agent1 = MinimaxAgent()
-    agent2 = AlphaBetaAgent()
-    opponents = [GreedyAgent() for _ in range(n_agents - 1)]
-    players1 = [agent1] + opponents
-    players2 = [agent2] + opponents
-
-    board_width = 40
-    board_height = 40
-    n_fruits = 50
-    game_duration = 500
-
-    length_1 = [0]
-    time_1 = [0]
-    length_2 = [0]
-    time_2 = [0]
-
-    env1 = SnakesBackendSync(players1,
-                             grid_size=Grid2DSize(board_width, board_height),
-                             n_fruits=n_fruits,
-                             game_duration_in_turns=game_duration, random_seed=15, depth=2)
-    env1.run_game(human_speed=False, render=True, length=length_1, delta_time=time_1)
-
-    env2 = SnakesBackendSync(players2,
-                             grid_size=Grid2DSize(board_width, board_height),
-                             n_fruits=n_fruits,
-                             game_duration_in_turns=game_duration, random_seed=15, depth=2
-                             )
-    env2.run_game(human_speed=False, render=True, length=length_2, delta_time=time_2)
-    print("lenght 1: " + str(length_1) + "length 2: " + str(length_2))
-    print("time 1: " + str(time_1) + "time 2: " + str(time_2))
-    np.random.seed()
-
-
 class MinimaxAgent(Player):
     """
     This class implements the Minimax algorithm.
@@ -74,7 +39,7 @@ class MinimaxAgent(Player):
     'None' value (without quotes) to indicate that your agent haven't picked an action yet.
     """
 
-    def __init__(self, depth=3):
+    def __init__(self, depth=4):
         super(MinimaxAgent, self).__init__()
         self.depth = depth
 
@@ -128,7 +93,7 @@ class MinimaxAgent(Player):
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
             next_state = self.TurnBasedGameState(state, action)
-            max_value = self.RB_minimax(next_state, state.depth)
+            max_value = self.RB_minimax(next_state, self.depth)
             if max_value > best_value:
                 best_value = max_value
                 best_actions = [action]
@@ -488,7 +453,7 @@ class TournamentAgent(AlphaBetaAgent):
 
 
 if __name__ == '__main__':
-    # SAHC_sideways()
-    # local_search()
-    get_alpha_beta_against_minmax()
+    SAHC_sideways()
+    local_search()
+
 
