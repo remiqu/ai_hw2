@@ -103,71 +103,6 @@ class MinimaxAgent(Player):
         delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
-    # def max_value(self, state: TurnBasedGameState, depth) -> float:
-    #     if state.game_state.is_terminal_state:
-    #         return self.utility(state)
-    #     if depth == 0:
-    #         return heuristic(state.game_state, self.player_index)
-    #     v = -np.inf
-    #     for action in state.game_state.get_possible_actions(player_index=self.player_index):
-    #         next_state = self.TurnBasedGameState(state.game_state, action)
-    #         v = max(v, self.min_value(next_state, depth-1))
-    #     return v
-    #
-    # def min_value(self, state: TurnBasedGameState, depth) -> float:
-    #     if state.game_state.is_terminal_state:
-    #         return self.utility(state)
-    #     if depth == 0:
-    #         return heuristic(state.game_state, self.player_index)
-    #     v = np.inf
-    #
-    #     # todo: no need to pass to this function the id of the Player index that we are trying right now?
-    #     for opponents_actions in state.game_state.get_possible_actions_dicts_given_action(state.agent_action,
-    #                                                                                       player_index=self.player_index):
-    #         opponents_actions[self.player_index] = state.agent_action
-    #         next_state = get_next_state(state.game_state, opponents_actions)
-    #         tb_next_state = self.TurnBasedGameState(next_state, None)
-    #         v = min(v, self.max_value(tb_next_state, depth-1))
-    #     return v
-    #
-    # def get_action(self, state: GameState) -> GameAction:
-    #     best_value = np.inf
-    #     best_actions = state.get_possible_actions(player_index=self.player_index)
-    #     for action in state.get_possible_actions(player_index=self.player_index):
-    #         next_state = self.TurnBasedGameState(state, action)
-    #         min_value = self.min_value(next_state, self.depth-1)
-    #         if min_value < best_value:
-    #             best_value = min_value
-    #             best_actions = [action]
-    #         elif best_value == min_value:
-    #             best_actions.append(action)
-    #     return np.random.choice(best_actions)
-
-    # def utility(self, state: TurnBasedGameState) -> list:
-    #     return [s.length for s in state.snakes if s.alive and -1 if not s.alive]
-    #
-    #
-    #
-    # def max_value(self, state: TurnBasedGameState) -> list:
-    #     if state.game_state.is_terminal_state:
-    #         return self.utility(state)
-    #     v = -np.inf
-    #     for action in state.game_state.get_possible_actions(player_index=self.player_index):
-    #         next_state = self.TurnBasedGameState(state.game_state, action)
-    #         v = max_utility(v, self.min_value(next_state))
-    #     return v
-    #
-    # def min_value(self, state: TurnBasedGameState) -> list:
-    #     if state.game_state.is_terminal_state:
-    #         return self.utility(state)
-    #     v = np.inf
-    #     for opponents_actions in state.get_possible_actions_dicts_given_action(state.agent_action, player_index=self.player_index):
-    #         opponents_actions[self.player_index] = state.agent_action
-    #         next_state = get_next_state(state.game_state, opponents_actions)
-    #         tb_next_state = self.TurnBasedGameState(next_state, None)
-    #         v = min_utility(v, self.max_value())
-    #     return v
-
 
 class AlphaBetaAgent(MinimaxAgent):
 
@@ -239,7 +174,6 @@ def SAHC_sideways_internal(steps):
         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
             break
         elif best_score > current_score:
-            print("changing")
             print(get_fitness(steps))
             steps = copy.deepcopy(best_neighbour)
             sideways_count = 0
@@ -273,20 +207,6 @@ def SAHC_sideways():
 
     SAHC_sideways_internal(steps)
 
-
-    # for i in range(50):
-    #     best_action = GameAction.LEFT
-    #     best_score = 0
-    #     for action in GameAction:
-    #         steps[i] = action
-    #         score = get_fitness(tuple(steps))
-    #         if score >= best_score:
-    #             best_score = score
-    #             best_action = action
-    #     steps[i] = best_action
-    # print(steps)
-
-    limit = np.inf
 
 
 def reproduce(steps1, steps2):
@@ -356,80 +276,6 @@ def local_search():
     print(population[0])
     print(get_fitness(population[0]))
 
-    # restart_limit = 10
-    # best_steps_list = []
-    # best_score_list = []
-    # for k in range(restart_limit):
-    #     steps = []
-    #     for i in range(50):
-    #         steps.append(np.random.choice(GameAction))
-    #
-    #     sideways_limit = 5
-    #     sideways_count = 0
-    #     best_score = get_fitness(tuple(steps))
-    #     visited_neighbours = []
-    #
-    #     while sideways_count <= sideways_limit:
-    #         current_score = best_score
-    #         sideways_neighbours = []
-    #         best_neighbour = []
-    #         for i in range(50):
-    #             neighbour = steps
-    #             for action in GameAction:
-    #                 if action == steps[i]:
-    #                     continue
-    #                 neighbour[i] = action
-    #                 score = get_fitness(tuple(neighbour))
-    #                 if score > best_score:
-    #                     best_score = score
-    #                     best_neighbour = neighbour
-    #                 if score == current_score and neighbour not in visited_neighbours:
-    #                     sideways_neighbours.append(neighbour)
-    #         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
-    #             break
-    #         elif len(best_neighbour) > 0 and get_fitness(tuple(best_neighbour)) > get_fitness(tuple(steps)):
-    #             steps = best_neighbour
-    #             sideways_count = 0
-    #             visited_neighbours = []
-    #             visited_neighbours.append(steps)
-    #         elif len(sideways_neighbours) > 0:
-    #             steps = sideways_neighbours[0]
-    #             visited_neighbours.append(sideways_neighbours[0])
-    #             sideways_count += 1
-    #
-    #     best_steps_list.append(steps)
-    #     best_score_list.append(best_score)
-    #
-    # best_score = max(best_score_list)
-    # best_index = 0
-    # for i in range(restart_limit):
-    #     if best_steps_list[i] == best_score:
-    #         best_index = i
-    #         break
-    #
-    # best_steps = best_steps_list[best_index]
-    #
-    # print(best_score)
-    # print(best_steps)
-
-    #
-    # for i in range(50):
-    #
-    #     steps[i] = GameAction.RIGHT
-    #     score_right = get_fitness(tuple(steps))
-    #     steps[i] = GameAction.LEFT
-    #     score_left = get_fitness(tuple(steps))
-    #     steps[i] = GameAction.STRAIGHT
-    #     score_straight = get_fitness(tuple(steps))
-    #
-    #     score = score_left + score_right + score_straight
-    #     prob_right = score_right/score
-    #     prob_left = score_left/score
-    #     prob_straight = score_straight/score
-    #
-    #     action = np.random.choice([GameAction.RIGHT, GameAction.LEFT, GameAction.STRAIGHT], 1, p=[prob_right, prob_left, prob_straight])
-    #     steps[i] = action[0]
-    # print(steps)
 
 
 class TournamentAgent(AlphaBetaAgent):
