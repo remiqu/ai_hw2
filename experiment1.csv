@@ -3,6 +3,6 @@ betterAgent,40.9,1.47697854,
 MinMaxAgent,2,40.5,1.525916862
 MinMaxAgent,4,29.5,10.96293628
 MinMaxAgent,6,33.3,79.05695832
-AlphaBetaAgent,2,33.3,40.4322104
-AlphaBetaAgent,4,37.3,44.52641912
-AlphaBetaAgent,6,31.9,41.69764066
+AlphaBetaAgent,2,43.7,1.707865357
+AlphaBetaAgent,4,37.3,10.24434986
+AlphaBetaAgent,6,34.3,42.02791531

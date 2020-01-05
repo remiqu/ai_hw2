@@ -230,24 +230,24 @@ class GameState:
 
     def get_possible_actions_dicts_given_action(self, action: GameAction, player_index=0) -> list:
         """
-            Given the current player's action, return a list of all possible action dictionaries in which the current player
-            chooses the given action. This method takes into account dead snakes and thus the result is not necessarily
-            3 possible actions for each other player.
-            Also, if the given state is terminal, an empty list will be returned.
-            :param action: action of the player (non-changing).
-            :param player_index: the index of the player who's action is given.
-            :return: a list of dictionaries. each dictionary has the form {player_index ==> player_action}, i.e maps between
-            living players and their moves. the list includes a dict for each possible move of the opponents.
-            """
+        Given the current player's action, return a list of all possible action dictionaries in which the current player
+        chooses the given action. This method takes into account dead snakes and thus the result is not necessarily
+        3 possible actions for each other player.
+        Also, if the given state is terminal, an empty list will be returned.
+        :param player_index: the index of the player who's action is given.
+        :param action: action of the player (non-changing).
+        :return: a list of dictionaries. each dictionary has the form {player_index ==> player_action}, i.e maps between
+        living players and their moves. the list includes a dict for each possible move of the opponents.
+        """
         assert self.snakes[player_index].alive
+
         opponents_alive = self.get_opponents_alive(player_index=player_index)
         if len(opponents_alive) == 0:
             yield {player_index: action}
         else:
             for i in range(len(GameAction) ** len(opponents_alive)):
                 opponents_actions_str = np.base_repr(i, base=len(GameAction))
-                opponents_actions_str = '0' * (
-                            len(opponents_alive) - len(opponents_actions_str)) + opponents_actions_str
+                opponents_actions_str = '0'*(len(opponents_alive) - len(opponents_actions_str)) + opponents_actions_str
                 # print(opponents_actions_str)
                 snake_actions = list(GameAction)
                 possible_actions_dict = {opp: snake_actions[int(opp_action_str)]
@@ -293,7 +293,6 @@ class GameState:
         The agent's snake (indicated by player_index) will be in the first layer (matrix),
         then the rest n_snakes-1 opponents' snakes,
         and in the last layer (matrix) of the tensor is the placements of the fruits.
-
         :param player_perspective: int. the index of the agent.
         :return: numpy array with the shape defined in the observation space.
         """
@@ -362,7 +361,6 @@ class GameState:
 
 def get_next_state(game_state: GameState, living_players_actions: dict) -> GameState:
     """
-
     :param game_state: a GameState object that represents a certain state of the game, which you desire to know the
     next state obtained after performing the given actions upon this given game state.
     :param living_players_actions: a dictionary with an action for each living player.
@@ -395,7 +393,6 @@ class SnakesBackendSync:
     """
     Objects of this class are managing the game. It stores the state of the grid, the snakes etc. It handles the
     actions being made by the agents.
-
     There are 3 possible actions the agents can perform:
         0 --> Left turn
         1 --> Continue straight
@@ -537,7 +534,7 @@ class SnakesBackendSync:
             if game_state.current_winner is None or game_state.current_winner.length <= longest_snake_length:
                 game_state.current_winner = longest_this_turn
 
-    def run_game(self, human_speed=False, render=True):
+    def run_game(self, human_speed=False, render=True, length=[0], delta_time=[0]):
         if render:
             self.render()
         while self.game_state.turn_number < self.game_duration_in_turns:
@@ -546,7 +543,7 @@ class SnakesBackendSync:
             if human_speed:
                 time.sleep(0.1)
             agents_actions = {
-                agent_index: agent_controller.get_action(self.game_state)
+                agent_index: agent_controller.get_action(self.game_state, delta_time)
                 for agent_index, agent_controller in enumerate(self._agents_controllers)
                 if self.game_state.snakes[agent_index].alive
             }
@@ -558,6 +555,7 @@ class SnakesBackendSync:
             logging.info(f"Current Winner: {self.game_state.current_winner}")
 
             self.played_this_turn = []
+        length[0] += self.game_state.snakes[0].length
         print(f"Winner: {self.game_state.current_winner}")
         # return self.game_state.current_winner.length
 
