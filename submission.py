@@ -23,9 +23,11 @@ def heuristic(state: GameState, player_index: int) -> float:
 
     head = state.snakes[player_index].head
     sum = 100 * state.snakes[player_index].length
+    remaining_turns = state.game_duration_in_turns - state.turn_number
+    fruit_distances = [abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]) for fruit in state.fruits_locations if abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]) <= remaining_turns]
 
-    for fruit in state.fruits_locations:
-        sum += 1 / (abs(fruit[0] - head[0]) + abs(fruit[1] - head[1]))
+    for i in range(len(fruit_distances)):
+        sum += 1/fruit_distances[i]
 
     return sum
 
@@ -88,7 +90,6 @@ class MinimaxAgent(Player):
             return cur_min
 
     def get_action(self, state: GameState, delta_time=None) -> GameAction:
-        start_time = time.time()
         best_value = -np.inf
         best_actions = state.get_possible_actions(player_index=self.player_index)
         for action in state.get_possible_actions(player_index=self.player_index):
@@ -99,8 +100,6 @@ class MinimaxAgent(Player):
                 best_actions = [action]
             elif best_value == max_value:
                 best_actions.append(action)
-        end_time = time.time()
-        delta_time[0] += end_time - start_time
         return np.random.choice(best_actions)
 
 
@@ -174,7 +173,6 @@ def SAHC_sideways_internal(steps):
         if len(best_neighbour) == 0 and len(sideways_neighbours) == 0:
             break
         elif best_score > current_score:
-            print(get_fitness(steps))
             steps = copy.deepcopy(best_neighbour)
             sideways_count = 0
             visited_neighbours = [steps]
@@ -182,7 +180,6 @@ def SAHC_sideways_internal(steps):
             steps = sideways_neighbours[0]
             visited_neighbours.append(sideways_neighbours[0])
             sideways_count += 1
-        print(get_fitness(steps))
 
     print(get_fitness(steps))
     print(steps)
